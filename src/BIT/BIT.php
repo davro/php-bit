@@ -97,65 +97,6 @@ class BIT
      *               - 'summary' (string): A summary of the drift (e.g., "2 fields added, 1 field modified").
      *               - 'details' (array): A list of specific differences.
      */
-    /*
-    public static function getDriftDetails(string $key, $data): array
-    {
-        // Get the baseline data
-        $filePath = self::getBaselineFilePath($key);
-        if (!file_exists($filePath)) {
-            throw new \RuntimeException("Baseline not found for key: $key");
-        }
-
-        $baselineData = json_decode(file_get_contents($filePath), true);
-
-        // Compare the current data to the baseline
-        if ($data === $baselineData) {
-            return [
-                'drift_detected' => false,
-                'summary' => 'No drift detected.',
-                'details' => [],
-            ];
-        }
-
-        // Recursively compare the arrays
-        $changes = self::compareArrays($baselineData, $data);
-
-        // Generate a summary
-        $summary = sprintf(
-            "%d fields added, %d fields removed, %d fields modified.",
-            count($changes['added']),
-            count($changes['removed']),
-            count($changes['modified'])
-        );
-
-        // Format the details
-        $details = [];
-        foreach ($changes['added'] as $key => $value) {
-            $details[] = ['type' => 'added', 'field' => $key, 'value' => $value];
-        }
-        foreach ($changes['removed'] as $key => $value) {
-            $details[] = ['type' => 'removed', 'field' => $key, 'value' => $value];
-        }
-        foreach ($changes['modified'] as $key => $value) {
-            $details[] = ['type' => 'modified', 'field' => $key, 'value' => $value];
-        }
-
-        return [
-            'drift_detected' => true,
-            'summary' => $summary,
-            'details' => $details,
-        ];
-    }*/
-    /**
-     * Get detailed information about drift between the current behavior and the baseline.
-     *
-     * @param string $key  The unique identifier for the baseline.
-     * @param mixed  $data The current data to compare against the baseline.
-     * @return array An array containing:
-     *               - 'drift_detected' (bool): Whether drift was detected.
-     *               - 'summary' (string): A summary of the drift (e.g., "2 fields added, 1 field modified").
-     *               - 'details' (array): A list of specific differences.
-     */
     public static function getDriftDetails(string $key, $data): array
     {
         // Get the baseline data
