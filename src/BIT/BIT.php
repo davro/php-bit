@@ -198,7 +198,7 @@ class BIT
      *
      * @return string
      */
-    private static function getStorageDirectory(): string
+    public static function getStorageDirectory(): string
     {
         return __DIR__ . '/../../storage/baselines';
     }
@@ -209,7 +209,7 @@ class BIT
      * @param string $key The unique identifier for the baseline.
      * @return string
      */
-    private static function getBaselineFilePath(string $key): string
+    public static function getBaselineFilePath(string $key): string
     {
         return self::getStorageDirectory() . '/' . $key . '.json';
     }

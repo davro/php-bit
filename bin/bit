@@ -10,7 +10,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class CaptureBaselineCommand extends Command
+class CaptureCommand extends Command
 {
     protected static $defaultName = 'bit:capture';
 
@@ -27,58 +27,51 @@ class CaptureBaselineCommand extends Command
         $key = $input->getArgument('key');
         $data = json_decode($input->getArgument('data'), true);
 
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $output->writeln('<error>Invalid JSON data provided.</error>');
+            return Command::FAILURE;
+        }
+
         BIT::captureBaseline($key, $data);
 
-        $output->writeln("Storage: Baseline captured for key: $key");
+        $output->writeln("Baseline captured for key: $key");
         return Command::SUCCESS;
     }
 }
 
-/*
-class ExtractBaselineCommand extends Command
+class ExtractCommand extends Command
 {
     protected static $defaultName = 'bit:extract';
 
     protected function configure()
     {
         $this
-            ->setDescription('Extract a baseline for the given key.')
-            ->addArgument('key', InputArgument::REQUIRED, 'The baseline key.');
+            ->setDescription('Extract drift details for the given key and optional data.')
+            ->addArgument('key', InputArgument::REQUIRED, 'The baseline key.')
+            ->addArgument('data', InputArgument::OPTIONAL, 'The current data (JSON). If not provided, the stored baseline will be returned.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $key = $input->getArgument('key');
 
-        $filePath = __DIR__ . '/../storage/baselines/' . $key . '.json';
+        // Get the baseline data
+        $filePath = BIT::getBaselineFilePath($key);
         if (!file_exists($filePath)) {
-            throw new \RuntimeException("Baseline not found for key: $key");
+            $output->writeln('<error>Baseline not found for key: ' . $key . '</error>');
+            return Command::FAILURE;
         }
 
         $baselineData = json_decode(file_get_contents($filePath), true);
 
-        $output->writeln("Storage: Baseline extract for key: $key");
-        $output->writeln(var_export($baselineData, true));
-        return Command::SUCCESS;
-    }
-}
-*/
+        // If no data argument is provided, return the baseline data
+        if (!$input->getArgument('data')) {
+            $output->writeln('Stored Baseline:');
+            $output->writeln(json_encode($baselineData, JSON_PRETTY_PRINT));
+            return Command::SUCCESS;
+        }
 
-class ExtractBaselineCommand extends Command
-{
-    protected static $defaultName = 'bit:extract';
-
-    protected function configure()
-    {
-        $this
-            ->setDescription('Extract drift details for the given key and data.')
-            ->addArgument('key', InputArgument::REQUIRED, 'The baseline key.')
-            ->addArgument('data', InputArgument::REQUIRED, 'The current data (JSON).');
-    }
-
-    protected function execute(InputInterface $input, OutputInterface $output)
-    {
-        $key = $input->getArgument('key');
+        // Compare the current data to the baseline
         $data = json_decode($input->getArgument('data'), true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
@@ -110,7 +103,119 @@ class ExtractBaselineCommand extends Command
     }
 }
 
+class ListCommand extends Command
+{
+    protected static $defaultName = 'bit:list';
+
+    protected function configure()
+    {
+        $this->setDescription('List all stored baselines.');
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        // Get the storage directory
+        $storageDir = BIT::getStorageDirectory();
+
+        // Find all JSON files in the storage directory
+        $baselines = glob("$storageDir/*.json");
+
+        if (empty($baselines)) {
+            $output->writeln('No baselines found.');
+            return Command::SUCCESS;
+        }
+
+        // Display the list of baselines
+        $output->writeln('Stored Baselines:');
+        foreach ($baselines as $baseline) {
+            $output->writeln('- ' . basename($baseline, '.json'));
+        }
+
+        return Command::SUCCESS;
+    }
+}
+
+class DeleteCommand extends Command
+{
+    protected static $defaultName = 'bit:delete';
+
+    protected function configure()
+    {
+        $this
+            ->setDescription('Delete a specific baseline.')
+            ->addArgument('key', InputArgument::REQUIRED, 'The baseline key to delete.');
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        $key = $input->getArgument('key');
+
+        // Get the file path for the baseline
+        $filePath = BIT::getBaselineFilePath($key);
+
+        // Check if the baseline exists
+        if (!file_exists($filePath)) {
+            $output->writeln('<error>Baseline not found for key: ' . $key . '</error>');
+            return Command::FAILURE;
+        }
+
+        // Delete the baseline file
+        if (unlink($filePath)) {
+            $output->writeln('Baseline deleted for key: ' . $key);
+            return Command::SUCCESS;
+        } else {
+            $output->writeln('<error>Failed to delete baseline for key: ' . $key . '</error>');
+            return Command::FAILURE;
+        }
+    }
+}
+
+class ClearCommand extends Command
+{
+    protected static $defaultName = 'bit:clear';
+
+    protected function configure()
+    {
+        $this->setDescription('Clear all stored baselines.');
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        // Get the storage directory
+        $storageDir = BIT::getStorageDirectory();
+
+        // Find all JSON files in the storage directory
+        $baselines = glob("$storageDir/*.json");
+
+        if (empty($baselines)) {
+            $output->writeln('No baselines found to clear.');
+            return Command::SUCCESS;
+        }
+
+        // Delete all baseline files
+        $deletedCount = 0;
+        foreach ($baselines as $baseline) {
+            if (unlink($baseline)) {
+                $deletedCount++;
+            } else {
+                $output->writeln('<error>Failed to delete baseline: ' . basename($baseline) . '</error>');
+            }
+        }
+
+        if ($deletedCount > 0) {
+            $output->writeln("Cleared $deletedCount baselines.");
+        } else {
+            $output->writeln('<error>No baselines were deleted.</error>');
+        }
+
+        return Command::SUCCESS;
+    }
+}
+
 $application = new Application('BIT CLI', '1.0.0');
-$application->add(new CaptureBaselineCommand());
-$application->add(new ExtractBaselineCommand());
+$application->add(new CaptureCommand());
+$application->add(new ExtractCommand());
+$application->add(new ListCommand());
+$application->add(new DeleteCommand());
+$application->add(new ClearCommand());
 $application->run();

@@ -52,6 +52,114 @@ Details:
 - Modified: status => failure
 ```
 
+
+## Extract Baseline Data
+
+If no data argument is provided, the command will return the stored baseline data:
+
+```bash
+php bin/bit bit:extract test-response
+```
+
+Output:
+
+```json
+Stored Baseline:
+{
+    "status": "success"
+}
+```
+
+## Compare with Data
+If a data argument is provided, the command will compare the current data with the baseline:
+
+```bash
+php bin/bit bit:extract test-response '{"status":"failure"}'
+```
+
+Output:
+
+```bash
+Drift Detected: true
+Summary: 1 fields modified.
+Details:
+- Modified: status => "failure"
+```
+
+
+## Delete a Baseline
+```bash
+php bin/bit bit:delete test-response
+```
+
+Output if successful:
+
+```bash
+Baseline deleted for key: test-response
+```
+
+Output if baseline not found:
+
+```bash
+<error>Baseline not found for key: test-response</error>
+```
+
+Explanation of the Code
+DeleteCommand Class:
+
+The command takes one argument: key (the baseline identifier).
+
+It checks if the baseline file exists in the storage/baselines/ directory.
+
+If the file exists, it deletes it using unlink().
+
+If the file does not exist, it outputs an error message.
+
+Error Handling:
+
+The command handles cases where the baseline does not exist or the file cannot be deleted.
+
+
+
+## Clear All Baselines
+```bash
+php bin/bit bit:clear
+```
+
+Output if successful:
+
+```bash
+Cleared 3 baselines.
+```
+
+Output if no baselines exist:
+
+```bash
+No baselines found to clear.
+```
+
+Output if deletion fails:
+
+```bash
+<error>Failed to delete baseline: test-response.json</error>
+```
+
+Explanation of the Code
+ClearCommand Class:
+
+The command scans the storage/baselines/ directory for JSON files.
+
+It deletes each file using unlink() and keeps track of the number of deleted files.
+
+If no baselines are found, it outputs a message saying No baselines found to clear.
+
+Error Handling:
+
+The command handles cases where files cannot be deleted and outputs an error message for each failure.
+
+
+
+
 ## Using the Library in Code
 You can also use the BIT library directly in your PHP code:
 
@@ -113,11 +221,7 @@ If you encounter any issues or have questions, please open an issue on GitHub.
 ## Roadmap
 
 1. Add More CLI Commands
-Expand the CLI tool with additional commands, such as:
-
-- `bit:list`: List all stored baselines.
-- `bit:delete`: Delete a specific baseline.
-- `bit:clear`: Clear all baselines.
+Expand the CLI tool with additional commands.
 
 2. Add Framework Integration
 Make the library easier to use in popular PHP frameworks like Laravel, Symfony, and Slim by:
