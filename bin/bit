@@ -1,0 +1,116 @@
+#!/usr/bin/env php
+<?php
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use BIT\BIT;
+use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+
+class CaptureBaselineCommand extends Command
+{
+    protected static $defaultName = 'bit:capture';
+
+    protected function configure()
+    {
+        $this
+            ->setDescription('Capture a baseline for the given key.')
+            ->addArgument('key', InputArgument::REQUIRED, 'The baseline key.')
+            ->addArgument('data', InputArgument::REQUIRED, 'The baseline data (JSON).');
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        $key = $input->getArgument('key');
+        $data = json_decode($input->getArgument('data'), true);
+
+        BIT::captureBaseline($key, $data);
+
+        $output->writeln("Storage: Baseline captured for key: $key");
+        return Command::SUCCESS;
+    }
+}
+
+/*
+class ExtractBaselineCommand extends Command
+{
+    protected static $defaultName = 'bit:extract';
+
+    protected function configure()
+    {
+        $this
+            ->setDescription('Extract a baseline for the given key.')
+            ->addArgument('key', InputArgument::REQUIRED, 'The baseline key.');
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        $key = $input->getArgument('key');
+
+        $filePath = __DIR__ . '/../storage/baselines/' . $key . '.json';
+        if (!file_exists($filePath)) {
+            throw new \RuntimeException("Baseline not found for key: $key");
+        }
+
+        $baselineData = json_decode(file_get_contents($filePath), true);
+
+        $output->writeln("Storage: Baseline extract for key: $key");
+        $output->writeln(var_export($baselineData, true));
+        return Command::SUCCESS;
+    }
+}
+*/
+
+class ExtractBaselineCommand extends Command
+{
+    protected static $defaultName = 'bit:extract';
+
+    protected function configure()
+    {
+        $this
+            ->setDescription('Extract drift details for the given key and data.')
+            ->addArgument('key', InputArgument::REQUIRED, 'The baseline key.')
+            ->addArgument('data', InputArgument::REQUIRED, 'The current data (JSON).');
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        $key = $input->getArgument('key');
+        $data = json_decode($input->getArgument('data'), true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $output->writeln('<error>Invalid JSON data provided.</error>');
+            return Command::FAILURE;
+        }
+
+        try {
+            $result = BIT::getDriftDetails($key, $data);
+
+            $output->writeln("Drift Detected: " . ($result['drift_detected'] ? 'true' : 'false'));
+            $output->writeln("Summary: " . $result['summary']);
+            $output->writeln("Details:");
+
+            foreach ($result['details'] as $detail) {
+                $output->writeln(sprintf(
+                    "- %s: %s => %s",
+                    ucfirst($detail['type']),
+                    $detail['field'],
+                    json_encode($detail['value'])
+                ));
+            }
+
+            return Command::SUCCESS;
+        } catch (\RuntimeException $e) {
+            $output->writeln('<error>' . $e->getMessage() . '</error>');
+            return Command::FAILURE;
+        }
+    }
+}
+
+$application = new Application('BIT CLI', '1.0.0');
+$application->add(new CaptureBaselineCommand());
+$application->add(new ExtractBaselineCommand());
+$application->run();
