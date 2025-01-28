@@ -22,12 +22,47 @@ composer require davro/php-bit
 
 To use the BIT library, you can capture a baseline response first. This is the response that you want to compare all future responses against.
 
+## Code: Capture a Baseline with no Drift, monitor status returns true.
 ```php
+$response = ['status' => 'success'];
 BIT::captureBaseline('test-response', $response);
+
+// Returns true if the response is the same as the baseline
+$status = BIT::monitor('test-response', $response);
+```
+
+## Code: Capture a Baseline with Drift, monitor status returns false.
+```php
+$response = ['status' => 'success'];
+BIT::captureBaseline('test-response', $response);
+
+// Monitor a different response (drift detected)
+$differentResponse = ['status' => 'failure'];
+$status = BIT::monitor('test-response', $differentResponse);
+```
+
+## Code: Capture a Baseline with Drift, monitor status and fetch diff.
+```php
+$response = ['status' => 'success'];
+BIT::captureBaseline('test-response', $response);
+
+// Detect drift with a different response
+$differentResponse = ['status' => 'failure'];
+$result = BIT::detectDrift('test-response', $differentResponse);
+
+// Returns true if drift is detected
+$drift = $result['drift_detected'];
+
+// Returns the diff between the baseline and the current response
+$resultDiff = $result['diff'];
+
+// Result Diff
+// '+    "status": "failure"'
+// '-    "status": "success"'
 ```
 
 
-## Capture a Baseline
+## Command Line: Capture a Baseline
 Use the bit:capture command to capture a baseline of your system's behavior. The baseline will be stored as a JSON file in the storage/baselines/ directory.
 
 ```bash
