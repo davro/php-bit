@@ -34,58 +34,42 @@ Use the bit:capture command to capture a baseline of your system's behavior. The
 php bin/bit bit:capture test-response '{"status":"success"}'
 ```
 
-## Extract Drift Details
-Use the bit:extract command to compare the current behavior against the stored baseline and extract drift details.
-
-```bash
-php bin/bit bit:extract test-response '{"status":"failure"}'
-```
-
-## Example Output
-If drift is detected, the command will output a summary and details of the differences:
-
-```bash
-Drift Detected: true
-Summary: 1 fields added, 1 fields modified.
-Details:
-- Added: new_field => value
-- Modified: status => failure
-```
-
-
-## Extract Baseline Data
-
+## Extract Baseline Data 
 If no data argument is provided, the command will return the stored baseline data:
 
 ```bash
 php bin/bit bit:extract test-response
-```
-
-Output:
-
-```json
 Stored Baseline:
 {
     "status": "success"
 }
 ```
 
-## Compare with Data
-If a data argument is provided, the command will compare the current data with the baseline:
+## Extract Details with Drift 
+If drift is detected, the command will output a summary and details of the differences:
+Use the bit:extract command to compare the current behavior against the stored baseline and extract drift details.
 
 ```bash
 php bin/bit bit:extract test-response '{"status":"failure"}'
-```
-
-Output:
-
-```bash
 Drift Detected: true
 Summary: 1 fields modified.
 Details:
 - Modified: status => "failure"
 ```
 
+## Extract Details with Drift and adding Additional fields
+If drift is detected, the command will output a summary and details of the differences:
+Use the bit:extract command to compare the current behavior against the stored baseline and extract drift details.
+
+```bash
+php bin/bit bit:extract test-response '{"status":"failure","new_field1":"new_value1", "new_field2":"new_value2"}'
+Drift Detected: true
+Summary: 2 fields added, 1 fields modified.
+Details:
+- Added: new_field1 => "new_value1"
+- Added: new_field2 => "new_value2"
+- Modified: status => "failure"
+```
 
 ## Delete a Baseline
 ```bash

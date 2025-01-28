@@ -88,4 +88,71 @@ class BITTest extends TestCase
         $this->assertEquals('1 fields added, 1 fields modified.', $result['summary']);
         $this->assertCount(2, $result['details']);
     }
+
+    // test case that captures the composer.json file and checks the current php version
+    public function testComposerJsonPhpVersion()
+    {
+        // Path to the composer.json file
+        $composerJsonPath = __DIR__ . '/../composer.json';
+    
+        // Capture the current PHP version requirement as a baseline
+        $composerJsonContent = file_get_contents($composerJsonPath);
+        $composerJson = json_decode($composerJsonContent, true);
+        $phpVersion = $composerJson['require']['php'] ?? null;
+    
+        //$this->assertNotNull($phpVersion, 'PHP version is not specified in composer.json.');
+    
+        BIT::captureBaseline('composer-php-version', ['php' => $phpVersion]);
+    
+        // Simulate a change to the PHP version requirement
+        $modifiedComposerJson = $composerJson;
+        $modifiedComposerJson['require']['php'] = '^8.2'; // Example change
+    
+        // Detect drift between the original and modified PHP version requirement
+        $result = BIT::getDriftDetails('composer-php-version', ['php' => $modifiedComposerJson['require']['php']]);
+    
+        // Assert that drift is detected
+        $this->assertTrue($result['drift_detected']);
+    
+        // Assert that the summary and details are as expected
+        $this->assertStringContainsString('1 fields modified', $result['summary']);
+        $this->assertCount(1, $result['details']);
+    
+        // Check the details of the drift
+        $this->assertEquals('modified', $result['details'][0]['type']);
+        $this->assertEquals('php', $result['details'][0]['field']);
+        $this->assertEquals('^8.2', $result['details'][0]['value']);
+    }
+
+    // test case that captures the composer.json file and manages any drift is a great way to demonstrate the power of your Behavioral Integrity Testing (BIT) library. 
+    public function testComposerJsonDrift()
+    {
+        // Path to the composer.json file
+        $composerJsonPath = __DIR__ . '/../composer.json';
+    
+        // Capture the current composer.json as a baseline
+        $composerJsonContent = file_get_contents($composerJsonPath);
+        BIT::captureBaseline('composer-php-version', json_decode($composerJsonContent, true));
+    
+        // Check the original php composer.json
+        $modifiedComposerJson = json_decode($composerJsonContent, true);
+
+        // Simulate a change to the composer.json file
+        $modifiedComposerJson['require']['php'] = '^8.1'; // Example change
+    
+        // Detect drift between the original and modified composer.json
+        $result = BIT::getDriftDetails('composer-php-version', $modifiedComposerJson);
+    
+        // Assert that drift is detected
+        $this->assertTrue($result['drift_detected']);
+    
+        // Assert that the summary and details are as expected
+        $this->assertStringContainsString('1 fields modified', $result['summary']);
+        $this->assertCount(1, $result['details']);
+    
+        // Check the details of the drift
+        $this->assertEquals('modified', $result['details'][0]['type']);
+        $this->assertEquals('php', $result['details'][0]['field']); // The modified field is 'php'
+        $this->assertEquals('^8.1', $result['details'][0]['value']); // The new value is '^8.1'
+    }
 }
