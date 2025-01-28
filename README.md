@@ -34,7 +34,7 @@ Use the bit:capture command to capture a baseline of your system's behavior. The
 php bin/bit bit:capture test-response '{"status":"success"}'
 ```
 
-## Extract Baseline Data 
+## Command Line: Extract Baseline Data.
 If no data argument is provided, the command will return the stored baseline data:
 
 ```bash
@@ -45,7 +45,7 @@ Stored Baseline:
 }
 ```
 
-## Extract Details with Drift 
+## Command Line: Extract Details with Drift 
 If drift is detected, the command will output a summary and details of the differences:
 Use the bit:extract command to compare the current behavior against the stored baseline and extract drift details.
 
@@ -57,7 +57,7 @@ Details:
 - Modified: status => "failure"
 ```
 
-## Extract Details with Drift and adding Additional fields
+## Command Line: Extract Details with Drift and adding Additional fields
 If drift is detected, the command will output a summary and details of the differences:
 Use the bit:extract command to compare the current behavior against the stored baseline and extract drift details.
 
@@ -71,7 +71,7 @@ Details:
 - Modified: status => "failure"
 ```
 
-## Delete a Baseline
+## Command Line: Delete a Baseline
 ```bash
 php bin/bit bit:delete test-response
 ```
@@ -105,7 +105,7 @@ The command handles cases where the baseline does not exist or the file cannot b
 
 
 
-## Clear All Baselines
+## Command Line: Clear All Baselines
 ```bash
 php bin/bit bit:clear
 ```
@@ -143,8 +143,7 @@ The command handles cases where files cannot be deleted and outputs an error mes
 
 
 
-
-## Using the Library in Code
+## Code: Using the Library
 You can also use the BIT library directly in your PHP code:
 
 ```php
