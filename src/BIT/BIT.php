@@ -198,9 +198,26 @@ class BIT
      *
      * @return string
      */
+
+    /*
     public static function getStorageDirectory(): string
     {
         return __DIR__ . '/../../storage/baselines';
+    }
+    */
+
+    /**
+     * Get the storage directory for baselines.
+     *
+     * @return string
+     */
+    public static function getStorageDirectory(): string
+    {
+        // Check if BIT_STORAGE_DIR environment variable is set
+        $storageDir = getenv('BIT_STORAGE_DIR');
+
+        // Return the environment variable value if set, otherwise default to the existing directory
+        return $storageDir ?: __DIR__ . '/../../storage/baselines';
     }
 
     /**
