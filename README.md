@@ -200,6 +200,71 @@ if ($result['drift_detected']) {
 }
 ```
 
+
+## BIT Performance Profiler
+BIT\Performance\Profiler is a lightweight PHP utility for measuring execution times of operations within your application. It helps detect performance regressions and track execution time over multiple runs.
+
+📌 Features
+✅ Start and stop timers for named operations
+✅ Measure execution time with microsecond precision
+✅ Track multiple operations independently
+✅ Detect performance regressions over time
+✅ Useful for debugging, logging, and optimizing performance
+
+
+Include the profiler:
+```php
+use BIT\Performance\Profiler;
+```
+
+🛠️ Usage
+1️⃣ Basic Execution Time Measuremeny
+```php
+use BIT\Performance\Profiler;
+
+Profiler::start('database_query');
+
+$result = someDatabaseQuery(); // Simulated operation
+
+$executionTime = Profiler::stop('database_query');
+
+echo "Query executed in: {$executionTime} seconds";
+```
+✅ Ensures operations are benchmarked for performance analysis.
+
+
+2️⃣ Measuring Multiple Operations
+```php
+Profiler::start('api_call');
+usleep(70000); // Simulate 70ms delay
+Profiler::stop('api_call');
+
+Profiler::start('file_read');
+usleep(50000); // Simulate 50ms delay
+Profiler::stop('file_read');
+
+print_r(Profiler::getExecutionTimes());
+```
+✅ Stores and retrieves execution times for multiple operations.
+
+
+3️⃣ Handling Exceptions for Missing Start Calls
+If stop() is called without a corresponding start(), an exception is thrown:
+```php
+try {
+    Profiler::stop('missing_operation');
+} catch (\Exception $e) {
+    echo "Error: " . $e->getMessage();
+}
+```
+
+🔴 Output:
+```bash
+Error: No matching start() call for 'missing_operation'
+```
+✅ Prevents incorrect usage of the profiler.
+
+
 ## Configuration
 
 By default, baselines are stored in the storage/baselines/ directory. You can customize the storage directory by setting the BIT_STORAGE_DIR environment variable:
@@ -231,12 +296,6 @@ Here are some planned features for future releases:
 - Framework Integration: Middleware and service providers for Laravel, Symfony, and Slim.
 - Reporting and Visualization: Generate HTML reports and visualize drift trends.
 
-## Support
-
-If you encounter any issues or have questions, please open an issue on GitHub.
-
-
-## Roadmap
 
 1. Add More CLI Commands
 Expand the CLI tool with additional commands.
@@ -273,3 +332,16 @@ Share PHP BIT with the PHP community to get feedback and contributions:
 - Post about it on forums like Reddit or Dev.to.
 - Share it on social media (e.g., Twitter, LinkedIn).
 - Submit it to PHP newsletters or blogs.
+
+
+## Support
+
+If you encounter any issues or have questions, please open an issue on GitHub.
+
+
+## 📌 Contributing
+Want to improve the BIT Library
+
+Fork the repository
+Submit a PR with improvements
+Open an issue for feature requests or bug reports
