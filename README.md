@@ -205,11 +205,11 @@ if ($result['drift_detected']) {
 BIT\Performance\Profiler is a lightweight PHP utility for measuring execution times of operations within your application. It helps detect performance regressions and track execution time over multiple runs.
 
 📌 Features
-✅ Start and stop timers for named operations
-✅ Measure execution time with microsecond precision
-✅ Track multiple operations independently
-✅ Detect performance regressions over time
-✅ Useful for debugging, logging, and optimizing performance
+- ✅ Start and stop timers for named operations
+- ✅ Measure execution time with microsecond precision
+- ✅ Track multiple operations independently
+- ✅ Detect performance regressions over time
+- ✅ Useful for debugging, logging, and optimizing performance
 
 
 Include the profiler:
